@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body > div {
+      margin: 10px;
+    }
+    body > div > span {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    function sendDefaultNotification() {
+      fetch('./notification-webhook');
+    }
+
+    function sendNotification() {
+      var title = document.getElementById('title').value;
+      var body = document.getElementById('body').value;
+
+      // https://i.pinimg.com/originals/d9/48/37/d948372f77d8e3bcdc11068e96eee49d.jpg
+      var icon = document.getElementById('icon').value;
+      var notification = {
+        title: title,
+        body: body,
+        icon: icon,
+      }
+
+      fetch('./notification-webhook', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notification),
+      });
+    }
+
+    function sendNotificationWithJson() {
+      var json = document.getElementById('json').value;
+
+      fetch('./notification-webhook', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(JSON.parse(json)),
+      });
+    }
+  </script>
+  <!-- Default -->
+  <div><button onclick="sendDefaultNotification()">Send default notification</button></div>
+  <!-- Params -->
+  <div style="margin-top: 40px;"><span>Title:</span><input type="text" id="title" /></div>
+  <div><span>Body:</span><input type="text" id="body" /></div>
+  <div><span>Icon url:</span><input type="text" id="icon" /></div>
+  <div><button onclick="sendNotification()">Send notification</button></div>
+  <!-- JSON -->
+  <div style="margin-top: 40px;"><span>Json:</span><textarea style="width: 100%; height: 300px;" id="json"></textarea></div>
+  <div><button onclick="sendNotificationWithJson()">Send notification with json</button></div>
+  <script>
+    document.getElementById('json').value = JSON.stringify({
+      title: 'test json title',
+      body: 'test json body',
+      icon: 'https://i.pinimg.com/originals/5c/10/6e/5c106e7f7095aef477091236a41d3d57.png',
+    }, null, 2)
+  </script>
+</body>
+</html>

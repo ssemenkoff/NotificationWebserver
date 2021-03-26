@@ -3,6 +3,11 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import webPush from 'web-push';
 import { insert, update, select } from 'easy-db-node';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -22,10 +27,15 @@ webPush.setVapidDetails(
 
 const port = 3005;
 
-const sendNotification = async () => {
+const sendNotification = async (notification) => {
   const rows = await select('subscriptions');
   for (let i in rows) {
-    const payload = JSON.stringify({ title: 'Hello there', body: 'General kenobi' });
+    const payload = notification ? JSON.stringify(notification) 
+      : JSON.stringify({
+        title: 'Hello there',
+        body: 'General kenobi',
+        icon: 'https://static.wikia.nocookie.net/star-wars-memes/images/f/fe/General_Kenobi%21.jpg',
+      });
     try {
       await webPush.sendNotification(rows[i], payload);
     } catch (e) {
@@ -33,13 +43,13 @@ const sendNotification = async () => {
   }
 };
 
-app.get('/', (req, res) => {
-  res.send('Up and running');
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname + '/index.html'));
 });
 
 app.post('/save-sub', async (req, res) => {
   const subscription = req.body;
-  const idOfRow = await insert('subscriptions', subscription);
+  await insert('subscriptions', subscription);
   res.sendStatus(200);
 });
 
@@ -47,6 +57,16 @@ app.post('/save-sub', async (req, res) => {
 app.get('/notification-webhook', async (req, res) => {
   try {
     await sendNotification();
+  } catch (e) {
+    console.log(e);
+  }
+  res.sendStatus(200);
+});
+
+app.post('/notification-webhook', async (req, res) => {
+  const notification = req.body;
+  try {
+    await sendNotification(notification);
   } catch (e) {
     console.log(e);
   }
